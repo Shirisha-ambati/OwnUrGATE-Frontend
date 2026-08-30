@@ -45,7 +45,15 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         {/* Logo */}
         <div className="flex items-center justify-between px-5 py-5 border-b border-bg-border">
           <div className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="OwnUrGATE Logo" className="w-8 h-8 rounded-lg object-cover shadow-glow-sm border border-white/20" />
+            <img
+              src="/logo.png"
+              alt="OwnUrGATE Logo"
+              className="w-8 h-8 rounded-lg object-cover shadow-glow-sm border border-white/20"
+              onError={(e) => {
+                // Fallback if logo image fails to load
+                (e.target as HTMLElement).style.display = 'none';
+              }}
+            />
             <div>
               <div className="text-text-primary font-bold text-sm leading-none">OwnUrGATE</div>
               <div className="text-text-muted text-xs mt-0.5">GATE Prep Portal</div>
