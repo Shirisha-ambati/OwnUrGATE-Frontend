@@ -119,21 +119,23 @@ export default function LoginPage() {
       </div>
 
       {/* Right Panel — Hero Image */}
-      <div className="hidden lg:flex flex-1 relative overflow-hidden">
+      <div className="hidden lg:flex flex-1 relative overflow-hidden bg-bg-primary min-h-screen">
         <img
-          src="/hero-bg.jpg"
-          onError={(e) => { (e.currentTarget as HTMLImageElement).src = heroBg; }}
-          alt="GATE preparation"
-          className="absolute inset-0 w-full h-full object-cover opacity-85"
+          src={heroBg}
+          alt="GATE Preparation Visual"
+          className="absolute inset-0 w-full h-full object-cover z-0"
         />
-        <div className="absolute inset-0 bg-gradient-to-l from-transparent via-bg-primary/20 to-bg-primary" />
-        <div className="absolute bottom-8 left-8 right-8">
-          <div className="glass-card p-5 backdrop-blur-md bg-bg-secondary/80">
-            <div className="text-text-muted text-xs uppercase tracking-widest font-semibold mb-2">Sample GATE Question</div>
-            <div className="text-text-primary text-sm leading-relaxed font-mono">
-              T(n) = 2T(n/2) + n·log n → <span className="text-brand-blue font-bold">Θ(n log² n)</span>
+        <div className="absolute inset-0 bg-gradient-to-t from-bg-primary/90 via-bg-primary/30 to-transparent z-10 pointer-events-none" />
+        <div className="absolute bottom-8 left-8 right-8 z-20">
+          <div className="glass-card p-5 backdrop-blur-md bg-bg-secondary/90 border border-white/10 shadow-2xl">
+            <div className="text-brand-blue text-xs uppercase tracking-widest font-semibold mb-2 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-brand-blue animate-pulse" />
+              Sample GATE Question
             </div>
-            <div className="mt-2 text-text-muted text-xs">Master Theorem · Case 2 · Algorithms</div>
+            <div className="text-text-primary text-base leading-relaxed font-mono font-semibold">
+              T(n) = 2T(n/2) + n·log n → <span className="text-blue-400 font-bold">Θ(n log² n)</span>
+            </div>
+            <div className="mt-2 text-text-secondary text-xs">Master Theorem · Case 2 · Algorithms</div>
           </div>
         </div>
       </div>
