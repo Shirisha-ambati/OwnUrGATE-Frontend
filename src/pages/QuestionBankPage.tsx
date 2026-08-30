@@ -3,7 +3,7 @@ import { Search, LayoutGrid, List, Filter, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import QuestionCard from "@/components/features/QuestionCard";
 import MathRenderer from "@/components/features/MathRenderer";
-import { getQuestions, getSubjects, deleteQuestion } from "@/lib/storage";
+import { useData } from "@/contexts/DataContext";
 import { cn, difficultyClass, typeColor, truncate } from "@/lib/utils";
 import type { Question, Difficulty } from "@/types";
 import { DIFFICULTIES, OPTION_LABELS } from "@/constants";
@@ -12,21 +12,18 @@ type ViewMode = "list" | "kanban";
 
 export default function QuestionBankPage() {
   const navigate = useNavigate();
+  const { questions: allQuestionsRaw, subjects, deleteQuestion } = useData();
   const [view, setView] = useState<ViewMode>("list");
   const [search, setSearch] = useState("");
   const [subjectFilter, setSubjectFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [diffFilter, setDiffFilter] = useState("");
-  const [, forceUpdate] = useState(0);
-
-  const subjects = getSubjects();
 
   const allQuestions = useMemo(() => {
-    const qs = getQuestions();
     const subMap: Record<string, string> = {};
-    subjects.forEach(s => { subMap[s.id] = s.name; });
-    return qs.map(q => ({ ...q, subjectName: subMap[q.subjectId] || q.subjectName || "Unknown" }));
-  }, []);
+    subjects.forEach(s => { subMap[s.id] = s.name; if ((s as any)._id) subMap[(s as any)._id] = s.name; });
+    return allQuestionsRaw.map(q => ({ ...q, subjectName: subMap[q.subjectId] || subMap[(q as any).subjectId] || q.subjectName || "Unknown" }));
+  }, [allQuestionsRaw, subjects]);
 
   const filtered = useMemo(() => {
     return allQuestions.filter(q => {
@@ -40,7 +37,6 @@ export default function QuestionBankPage() {
 
   const handleDelete = (id: string) => {
     deleteQuestion(id);
-    forceUpdate(n => n + 1);
   };
 
   const kanbanCols: Difficulty[] = ["Easy", "Medium", "Hard", "Unrated"];
@@ -83,7 +79,7 @@ export default function QuestionBankPage() {
           </div>
           <select value={subjectFilter} onChange={e => setSubjectFilter(e.target.value)} className="input-field w-full sm:w-auto sm:min-w-[140px]">
             <option value="">All Subjects</option>
-            {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            {subjects.map(s => <option key={s.id || (s as any)._id} value={s.id || (s as any)._id}>{s.name}</option>)}
           </select>
           <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="input-field w-full sm:w-auto sm:min-w-[110px]">
             <option value="">All Types</option>
@@ -114,7 +110,7 @@ export default function QuestionBankPage() {
       ) : view === "list" ? (
         <div className="space-y-3">
           {filtered.map(q => (
-            <QuestionCard key={q.id} question={q} onDelete={handleDelete} />
+            <QuestionCard key={q.id || (q as any)._id} question={q} onDelete={handleDelete} />
           ))}
         </div>
       ) : (
@@ -138,7 +134,7 @@ export default function QuestionBankPage() {
                     <div className="glass-card p-6 text-center text-text-muted text-sm">No {diff.toLowerCase()} questions</div>
                   ) : (
                     colQs.map(q => (
-                      <KanbanCard key={q.id} question={q} onDelete={handleDelete} />
+                      <KanbanCard key={q.id || (q as any)._id} question={q} onDelete={handleDelete} />
                     ))
                   )}
                 </div>
@@ -159,7 +155,7 @@ function KanbanCard({ question, onDelete }: { question: Question; onDelete: (id:
           {question.questionType}
         </span>
         <span className="text-xs text-text-muted ml-auto">{question.marks}M</span>
-        <button onClick={() => onDelete(question.id)} className="opacity-0 group-hover:opacity-100 p-1 text-text-muted hover:text-gate-unanswered transition-all">
+        <button onClick={() => onDelete(question.id || (question as any)._id)} className="opacity-0 group-hover:opacity-100 p-1 text-text-muted hover:text-gate-unanswered transition-all">
           ×
         </button>
       </div>

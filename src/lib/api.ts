@@ -1,24 +1,59 @@
 /**
  * API Client — wraps all backend REST endpoints.
- * Falls back gracefully when the backend is offline.
+ * Includes JWT bearer token support for reliable authentication and cross-device sync.
  */
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
+const TOKEN_KEY = "ownurgate_token";
+
+export function setAuthToken(token: string) {
+  if (token) {
+    localStorage.setItem(TOKEN_KEY, token);
+  }
+}
+
+export function getAuthToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function clearAuthToken() {
+  localStorage.removeItem(TOKEN_KEY);
+}
+
+function normalizeId<T>(item: T): T {
+  if (!item || typeof item !== "object") return item;
+  if (Array.isArray(item)) {
+    return item.map(normalizeId) as unknown as T;
+  }
+  const obj = { ...item } as any;
+  if (obj._id && !obj.id) {
+    obj.id = obj._id;
+  }
+  return obj;
+}
+
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const token = getAuthToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(options.headers as Record<string, string>),
+  };
+
   const res = await fetch(`${API_URL}${path}`, {
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
+    headers,
     ...options,
   });
+
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`API ${options.method || "GET"} ${path} failed: ${text}`);
   }
-  return res.json() as Promise<T>;
+
+  const data = await res.json();
+  return normalizeId(data) as T;
 }
 
 // ---- Auth ----
@@ -75,8 +110,10 @@ export const attemptsApi = {
 
 export const isBackendAvailable = async (): Promise<boolean> => {
   try {
-    await fetch(`${API_URL}/api/auth/me`, { credentials: "include" });
-    return true;
+    const token = getAuthToken();
+    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await fetch(`${API_URL}/api/auth/me`, { credentials: "include", headers });
+    return res.ok;
   } catch {
     return false;
   }

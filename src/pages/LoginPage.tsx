@@ -26,8 +26,13 @@ export default function LoginPage() {
     script.onload = () => {
       (window as any).google?.accounts.id.initialize({
         client_id: GOOGLE_CLIENT_ID,
-        callback: (response: { credential: string }) => {
-          loginWithGoogle(response.credential);
+        callback: async (response: { credential: string }) => {
+          try {
+            await loginWithGoogle(response.credential);
+          } catch (err: any) {
+            console.error("Google login error:", err);
+            alert("Google login failed. Please try again.");
+          }
         },
       });
       (window as any).google?.accounts.id.renderButton(

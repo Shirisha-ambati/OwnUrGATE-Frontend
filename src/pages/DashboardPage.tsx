@@ -5,18 +5,16 @@ import {
   PlusCircle, Play, TrendingUp, ArrowRight, CheckCircle2, Clock
 } from "lucide-react";
 import StatCard from "@/components/features/StatCard";
-import { getQuestions, getAttempts, getSubjects } from "@/lib/storage";
+import { useData } from "@/contexts/DataContext";
 import { formatDateTime, formatDuration, calcAccuracy } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { questions, attempts, subjects } = useData();
 
   const stats = useMemo(() => {
-    const questions = getQuestions();
-    const attempts = getAttempts();
-    const subjects = getSubjects();
 
     const totalQ = questions.length;
     const totalAttempts = attempts.length;
@@ -39,7 +37,7 @@ export default function DashboardPage() {
       });
 
     return { totalQ, totalAttempts, accuracy, activeSubs, subjectStats, recentAttempts: attempts.slice(-5).reverse() };
-  }, []);
+  }, [questions, attempts, subjects]);
 
   const quickActions = [
     { label: "Add Question", icon: PlusCircle, path: "/add-question", color: "text-blue-500 hover:border-blue-500/40 hover:bg-blue-500/5" },

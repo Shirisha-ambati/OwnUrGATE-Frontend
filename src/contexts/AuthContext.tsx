@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { User } from "@/types";
-import { getUser, setUser, clearUser, devLogin, seedSampleData } from "@/lib/storage";
-import { authApi, subjectsApi } from "@/lib/api";
+import { getUser, setUser, clearUser, devLogin } from "@/lib/storage";
+import { authApi, subjectsApi, setAuthToken, clearAuthToken } from "@/lib/api";
 
 interface AuthContextType {
   user: User | null;
@@ -33,33 +33,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     (async () => {
-      // 1. Try restoring stored session from device localStorage
+      // 1. Show stored user immediately for fast UI
       const stored = getUser();
       if (stored) {
         setUserState(stored);
-        setLoading(false);
-        return;
       }
 
-      // 2. Try restoring session from backend cookie
+      // 2. Refresh from backend using token/cookie session
       try {
         const { user: apiUser } = await authApi.me();
-        if (apiUser?.id) {
+        if (apiUser?.id && apiUser.id !== "dev-user-id") {
           const u = await postLoginSetup(apiUser);
           setUserState(u);
           setLoading(false);
           return;
         }
-      } catch { /* offline */ }
+      } catch { /* offline — keep stored user if any */ }
 
-      // 3. Unauthenticated -> User remains null and ProtectedRoute redirects to /login
+      if (!stored) {
+        setUserState(null);
+      }
       setLoading(false);
     })();
   }, []);
 
   const login = async () => {
     try {
-      const { user: apiUser } = await authApi.devLogin();
+      const { token, user: apiUser } = await authApi.devLogin();
+      if (token) setAuthToken(token);
       const u = await postLoginSetup(apiUser);
       setUserState(u);
     } catch {
@@ -71,18 +72,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithGoogle = async (credential: string) => {
     try {
-      const { user: apiUser } = await authApi.googleLogin(credential);
+      const { token, user: apiUser } = await authApi.googleLogin(credential);
+      if (token) setAuthToken(token);
       const u = await postLoginSetup(apiUser);
       setUserState(u);
     } catch (err) {
       console.error("Google login failed:", err);
-      // Fallback: dev login
-      const u = devLogin();
-      setUserState(u);
+      throw err;
     }
   };
 
   const logout = () => {
+    clearAuthToken();
     clearUser();
     setUserState(null);
   };

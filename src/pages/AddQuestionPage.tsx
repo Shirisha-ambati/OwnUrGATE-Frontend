@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Upload, Eye, Save, RotateCcw, Image as ImageIcon, CheckCircle2, AlertCircle, Trash2 } from "lucide-react";
 import MathRenderer from "@/components/features/MathRenderer";
-import { getSubjects, saveQuestion } from "@/lib/storage";
+import { useData } from "@/contexts/DataContext";
 import { cn, calcNegativeMarks } from "@/lib/utils";
 import { OPTION_LABELS } from "@/constants";
 import type { QuestionType, Difficulty } from "@/types";
@@ -29,7 +29,7 @@ type Toast = { type: "success" | "error"; msg: string } | null;
 
 export default function AddQuestionPage() {
   const navigate = useNavigate();
-  const subjects = getSubjects();
+  const { subjects, addQuestion } = useData();
   const [form, setForm] = useState(INITIAL_FORM);
   const [preview, setPreview] = useState(false);
   const [toast, setToast] = useState<Toast>(null);
@@ -89,7 +89,7 @@ export default function AddQuestionPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.subjectId) return showToast("error", "Please select a subject.");
     if (!form.questionText.trim() && !form.imageUrl) return showToast("error", "Provide question text or attach a screenshot.");
@@ -102,27 +102,31 @@ export default function AddQuestionPage() {
       if (!form.natValue.trim()) return showToast("error", "Enter the NAT correct answer.");
     }
 
-    const sub = subjects.find(s => s.id === form.subjectId);
-    saveQuestion({
-      subjectId: form.subjectId,
-      subjectName: sub?.name || "",
-      topic: form.topic,
-      questionText: form.questionText,
-      imageUrl: form.imageUrl,
-      questionType: form.questionType,
-      options: form.questionType !== "NAT" ? form.options : [],
-      optionImages: form.questionType !== "NAT" ? form.optionImages : [],
-      correctAnswer: form.questionType !== "NAT" ? form.correctAnswer : [],
-      natAnswer: form.questionType === "NAT" ? { correctValue: parseFloat(form.natValue), tolerance: parseFloat(form.natTolerance) || 0 } : undefined,
-      marks: form.marks,
-      negativeMarks: finalNegativeMarks,
-      explanation: form.explanation,
-      explanationImageUrl: form.explanationImageUrl,
-      difficulty: form.difficulty,
-      isActive: true,
-    });
-    showToast("success", "Question saved successfully!");
-    setTimeout(() => navigate("/question-bank"), 1000);
+    const sub = subjects.find(s => s.id === form.subjectId || (s as any)._id === form.subjectId);
+    try {
+      await addQuestion({
+        subjectId: form.subjectId,
+        subjectName: sub?.name || "",
+        topic: form.topic,
+        questionText: form.questionText,
+        imageUrl: form.imageUrl,
+        questionType: form.questionType,
+        options: form.questionType !== "NAT" ? form.options : [],
+        optionImages: form.questionType !== "NAT" ? form.optionImages : [],
+        correctAnswer: form.questionType !== "NAT" ? form.correctAnswer : [],
+        natAnswer: form.questionType === "NAT" ? { correctValue: parseFloat(form.natValue), tolerance: parseFloat(form.natTolerance) || 0 } : undefined,
+        marks: form.marks,
+        negativeMarks: finalNegativeMarks,
+        explanation: form.explanation,
+        explanationImageUrl: form.explanationImageUrl,
+        difficulty: form.difficulty,
+        isActive: true,
+      });
+      showToast("success", "Question saved successfully!");
+      setTimeout(() => navigate("/question-bank"), 1000);
+    } catch (err: any) {
+      showToast("error", err.message || "Failed to save question.");
+    }
   };
 
   return (
@@ -196,7 +200,7 @@ export default function AddQuestionPage() {
                 <label className="label">Subject *</label>
                 <select value={form.subjectId} onChange={e => setForm(f => ({ ...f, subjectId: e.target.value }))} className="input-field" required>
                   <option value="">Select Subject</option>
-                  {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  {subjects.map(s => <option key={s.id || (s as any)._id} value={s.id || (s as any)._id}>{s.name}</option>)}
                 </select>
               </div>
               <div>

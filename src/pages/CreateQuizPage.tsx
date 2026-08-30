@@ -4,7 +4,7 @@ import {
   CheckSquare, AlertTriangle, Send, Eye, Grid, X
 } from "lucide-react";
 import MathRenderer from "@/components/features/MathRenderer";
-import { getQuestions, getSubjects, saveQuiz, saveAttempt, updatePracticeStats } from "@/lib/storage";
+import { useData } from "@/contexts/DataContext";
 import { cn, formatTimer, calcNegativeMarks, generateId } from "@/lib/utils";
 import type { Question, QuestionStatus, ExamQuestion } from "@/types";
 import { OPTION_LABELS } from "@/constants";
@@ -56,7 +56,7 @@ export default function CreateQuizPage() {
   const [reviewMode, setReviewMode] = useState(false);
   const [startTime, setStartTime] = useState(0);
 
-  const subjects = getSubjects();
+  const { questions: allQuestions, subjects, addQuiz, addAttempt, updateQuestion } = useData();
 
   // Timer
   useEffect(() => {
@@ -71,11 +71,10 @@ export default function CreateQuizPage() {
   }, [stage, timeLeft]);
 
   const startExam = () => {
-    const allQs = getQuestions();
     const subMap: Record<string, string> = {};
-    subjects.forEach(s => { subMap[s.id] = s.name; });
+    subjects.forEach(s => { subMap[s.id] = s.name; if ((s as any)._id) subMap[(s as any)._id] = s.name; });
 
-    let pool = allQs.filter(q => {
+    let pool = allQuestions.filter(q => {
       const subMatch = setup.subjectIds.length === 0 || setup.subjectIds.includes(q.subjectId);
       const diffMatch = !setup.difficulty || q.difficulty === setup.difficulty;
       return subMatch && diffMatch && q.isActive;
@@ -99,7 +98,7 @@ export default function CreateQuizPage() {
     setStage("exam");
   };
 
-  const submitExam = useCallback((auto = false) => {
+  const submitExam = useCallback(async (auto = false) => {
     const timeSpent = Math.round((Date.now() - startTime) / 1000);
     let score = 0;
     let maxScore = 0;
@@ -111,7 +110,7 @@ export default function CreateQuizPage() {
       maxScore += q.marks;
       const isAnswered = q.userAnswer.length > 0 || q.natInput !== "";
 
-      if (!isAnswered) { skipped++; return { questionId: q.id, userAns: [], isCorrect: false, marksAwarded: 0 }; }
+      if (!isAnswered) { skipped++; return { questionId: q.id || (q as any)._id, userAns: [], isCorrect: false, marksAwarded: 0 }; }
 
       let isCorrect = false;
       let marksAwarded = 0;
@@ -141,26 +140,37 @@ export default function CreateQuizPage() {
         score -= neg;
       }
 
-      updatePracticeStats(q.id, isCorrect);
-      return { questionId: q.id, userAns: q.userAnswer.length > 0 ? q.userAnswer : [q.natInput], isCorrect, marksAwarded };
+      // updatePracticeStats via API (fire and forget per question)
+      updateQuestion(q.id || (q as any)._id, {
+        practiceStats: {
+          attempts: (q.practiceStats?.attempts || 0) + 1,
+          correct: (q.practiceStats?.correct || 0) + (isCorrect ? 1 : 0),
+        },
+      }).catch(() => {});
+
+      return { questionId: q.id || (q as any)._id, userAns: q.userAnswer.length > 0 ? q.userAnswer : [q.natInput], isCorrect, marksAwarded };
     });
 
     score = Math.max(0, Math.round(score * 100) / 100);
     const accuracy = maxScore > 0 ? Math.round((correct / examQs.length) * 100) : 0;
 
     const quizId = generateId();
-    saveQuiz({ title: setup.title, questions: examQs.map(q => q.id), durationMinutes: setup.durationMinutes, ownerId: "" });
-    saveAttempt({
-      quizId,
-      quizTitle: setup.title,
-      score,
-      maxScore,
-      accuracy,
-      answers,
-      timeSpentSeconds: timeSpent,
-      totalQuestions: examQs.length,
-      ownerId: "",
-    });
+    try {
+      await addQuiz({ title: setup.title, questions: examQs.map(q => q.id || (q as any)._id), durationMinutes: setup.durationMinutes, ownerId: "" });
+      await addAttempt({
+        quizId,
+        quizTitle: setup.title,
+        score,
+        maxScore,
+        accuracy,
+        answers,
+        timeSpentSeconds: timeSpent,
+        totalQuestions: examQs.length,
+        ownerId: "",
+      });
+    } catch (err) {
+      console.error("Failed to save quiz/attempt to server:", err);
+    }
 
     setResult({ score, maxScore, accuracy, answered: correct + incorrect, correct, incorrect, skipped, timeSpent, questions: examQs });
     setStage("result");
@@ -202,7 +212,7 @@ export default function CreateQuizPage() {
 
   const [showPalette, setShowPalette] = useState(false);
 
-  if (stage === "setup") return <SetupPanel subjects={subjects} setup={setup} setSetup={setSetup} onStart={startExam} />;
+  if (stage === "setup") return <SetupPanel subjects={subjects} allQuestions={allQuestions} setup={setup} setSetup={setSetup} onStart={startExam} />;
 
   if (stage === "result" && result) return <ResultPanel result={result} title={setup.title} onRetry={() => setStage("setup")} reviewMode={reviewMode} setReviewMode={setReviewMode} />;
 
@@ -386,8 +396,8 @@ function LegendItem({ color, label }: { color: string; label: string }) {
   );
 }
 
-function SetupPanel({ subjects, setup, setSetup, onStart }: { subjects: any[]; setup: SetupForm; setSetup: any; onStart: () => void }) {
-  const allQs = getQuestions();
+function SetupPanel({ subjects, allQuestions, setup, setSetup, onStart }: { subjects: any[]; allQuestions: any[]; setup: SetupForm; setSetup: any; onStart: () => void }) {
+  const allQs = allQuestions;
   const togSub = (id: string) => setSetup((f: SetupForm) => ({ ...f, subjectIds: f.subjectIds.includes(id) ? f.subjectIds.filter(s => s !== id) : [...f.subjectIds, id] }));
 
   const eligible = allQs.filter(q =>

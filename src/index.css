@@ -62,6 +62,17 @@
   ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.4);
   }
+
+  /* Select option styling for dark and light themes */
+  select option {
+    background-color: #1e2436;
+    color: #ffffff;
+  }
+
+  html.light select option {
+    background-color: #ffffff;
+    color: #0f172a;
+  }
 }
 
 @layer components {

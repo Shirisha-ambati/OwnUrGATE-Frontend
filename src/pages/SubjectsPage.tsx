@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Plus, Pencil, Trash2, BookOpen, CheckCircle2, X, Search } from "lucide-react";
-import { getSubjects, saveSubject, updateSubject, deleteSubject } from "@/lib/storage";
+import { useData } from "@/contexts/DataContext";
 import { cn } from "@/lib/utils";
 import type { Subject } from "@/types";
 
 export default function SubjectsPage() {
-  const [, forceUpdate] = useState(0);
+  const { subjects: allSubjects, addSubject, updateSubject, deleteSubject } = useData();
   const [editId, setEditId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editDesc, setEditDesc] = useState("");
@@ -14,7 +14,6 @@ export default function SubjectsPage() {
   const [newDesc, setNewDesc] = useState("");
   const [search, setSearch] = useState("");
 
-  const allSubjects = getSubjects();
   const subjects = allSubjects.filter(
     s =>
       !search.trim() ||
@@ -22,32 +21,31 @@ export default function SubjectsPage() {
       s.description.toLowerCase().includes(search.toLowerCase())
   );
 
+  const getId = (s: Subject) => s.id || (s as any)._id;
+
   const startEdit = (s: Subject) => {
-    setEditId(s.id);
+    setEditId(getId(s));
     setEditName(s.name);
     setEditDesc(s.description);
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (editId && editName.trim()) {
-      updateSubject(editId, { name: editName.trim(), description: editDesc.trim() });
+      await updateSubject(editId, { name: editName.trim(), description: editDesc.trim() });
       setEditId(null);
-      forceUpdate(n => n + 1);
     }
   };
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (!newName.trim()) return;
-    saveSubject({ name: newName.trim(), description: newDesc.trim(), isCustom: true, questionCount: 0 });
+    await addSubject({ name: newName.trim(), description: newDesc.trim(), isCustom: true, questionCount: 0 });
     setNewName("");
     setNewDesc("");
     setShowAdd(false);
-    forceUpdate(n => n + 1);
   };
 
-  const handleDelete = (id: string) => {
-    deleteSubject(id);
-    forceUpdate(n => n + 1);
+  const handleDelete = async (id: string) => {
+    await deleteSubject(id);
   };
 
   const defaultSubs = subjects.filter(s => !s.isCustom);
@@ -109,7 +107,7 @@ export default function SubjectsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {defaultSubs.map(s => (
             <SubjectCard
-              key={s.id}
+              key={getId(s)}
               subject={s}
               editId={editId}
               editName={editName}
@@ -134,7 +132,7 @@ export default function SubjectsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             {customSubs.map(s => (
               <SubjectCard
-                key={s.id}
+                key={getId(s)}
                 subject={s}
                 editId={editId}
                 editName={editName}
@@ -168,7 +166,8 @@ function SubjectCard({
   onCancelEdit: () => void;
   onDelete: (id: string) => void;
 }) {
-  const isEditing = editId === subject.id;
+  const subId = subject.id || (subject as any)._id;
+  const isEditing = editId === subId;
 
   return (
     <div className={cn("glass-card p-4 transition-all duration-200 hover:border-brand-blue/25", subject.isCustom && "border-brand-blue/15")}>
@@ -200,7 +199,7 @@ function SubjectCard({
               <button
                 onClick={() => {
                   if (confirm(`Are you sure you want to delete "${subject.name}"?`)) {
-                    onDelete(subject.id);
+                    onDelete(subId);
                   }
                 }}
                 className="p-1.5 rounded text-text-muted hover:text-gate-unanswered hover:bg-gate-unanswered/10 transition-all"

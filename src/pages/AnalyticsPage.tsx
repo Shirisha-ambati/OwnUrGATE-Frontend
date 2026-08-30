@@ -4,16 +4,15 @@ import {
   LineChart, Line, CartesianGrid, PieChart, Pie, Cell, Legend
 } from "recharts";
 import { TrendingUp, Target, BookOpen, Zap } from "lucide-react";
-import { getAttempts, getQuestions, getSubjects } from "@/lib/storage";
+import { useData } from "@/contexts/DataContext";
 import { cn, calcAccuracy } from "@/lib/utils";
 
 const COLORS = ["#4f7eff","#22c55e","#8b5cf6","#f59e0b","#ef4444","#06b6d4","#ec4899","#84cc16"];
 
 export default function AnalyticsPage() {
+  const dataCtx = useData();
   const data = useMemo(() => {
-    const subjects = getSubjects();
-    const questions = getQuestions();
-    const attempts = getAttempts();
+    const { subjects, questions, attempts } = dataCtx;
 
     // Subject accuracy
     const subjectStats = subjects
@@ -55,7 +54,7 @@ export default function AnalyticsPage() {
     const weakest = subjectStats.filter(s => s.attempts > 0).sort((a, b) => a.accuracy - b.accuracy)[0];
 
     return { subjectStats, trend, diffData, typeData, totalQ, totalAttempts, overallAcc, avgScore, strongest, weakest };
-  }, []);
+  }, [dataCtx]);
 
   const tooltipStyle = {
     backgroundColor: "#1c2235",

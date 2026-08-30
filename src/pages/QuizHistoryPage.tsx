@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { Clock, CheckCircle2, XCircle, Eye, TrendingUp, Calendar, Search } from "lucide-react";
 import MathRenderer from "@/components/features/MathRenderer";
-import { getAttempts, getQuestions } from "@/lib/storage";
+import { useData } from "@/contexts/DataContext";
 import { cn, formatDateTime, formatDuration } from "@/lib/utils";
 import type { QuizAttempt, AttemptAnswer } from "@/types";
 
 export default function QuizHistoryPage() {
-  const allAttempts = getAttempts().slice().reverse();
+  const { attempts: rawAttempts, questions } = useData();
+  const allAttempts = [...rawAttempts].reverse();
   const [expanded, setExpanded] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
@@ -62,16 +63,15 @@ export default function QuizHistoryPage() {
       {/* Attempts List */}
       <div className="space-y-3">
         {attempts.map(attempt => (
-          <AttemptRow key={attempt.id} attempt={attempt} expanded={expanded === attempt.id} onToggle={() => setExpanded(expanded === attempt.id ? null : attempt.id)} />
+          <AttemptRow key={attempt.id || (attempt as any)._id} attempt={attempt} questions={questions} expanded={expanded === (attempt.id || (attempt as any)._id)} onToggle={() => setExpanded(expanded === (attempt.id || (attempt as any)._id) ? null : (attempt.id || (attempt as any)._id))} />
         ))}
       </div>
     </div>
   );
 }
 
-function AttemptRow({ attempt, expanded, onToggle }: { attempt: QuizAttempt; expanded: boolean; onToggle: () => void }) {
-  const questions = getQuestions();
-  const qMap = Object.fromEntries(questions.map(q => [q.id, q]));
+function AttemptRow({ attempt, questions, expanded, onToggle }: { attempt: QuizAttempt; questions: any[]; expanded: boolean; onToggle: () => void }) {
+  const qMap = Object.fromEntries(questions.map(q => [q.id || (q as any)._id, q]));
 
   return (
     <div className={cn("glass-card overflow-hidden transition-all duration-200 hover:border-brand-blue/20", expanded && "border-brand-blue/25")}>
