@@ -31,7 +31,7 @@ export default function LoginPage() {
             await loginWithGoogle(response.credential);
           } catch (err: any) {
             console.error("Google login error:", err);
-            alert("Google login failed. Please try again.");
+            alert(`Google login failed: ${err.message || "Please check backend connectivity."}`);
           }
         },
       });
