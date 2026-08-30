@@ -45,13 +45,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         {/* Logo */}
         <div className="flex items-center justify-between px-5 py-5 border-b border-bg-border">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-gradient-brand rounded-lg flex items-center justify-center shadow-glow-sm">
-              <svg width="18" height="18" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 48 L12 20 L20 12 L44 12 L52 20 L52 48" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M22 48 L22 32 L32 24 L42 32 L42 48" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <rect x="28" y="38" width="8" height="10" rx="1" fill="white" opacity="0.9"/>
-              </svg>
-            </div>
+            <img src="/logo.png" alt="OwnUrGATE Logo" className="w-8 h-8 rounded-lg object-cover shadow-glow-sm border border-white/20" />
             <div>
               <div className="text-text-primary font-bold text-sm leading-none">OwnUrGATE</div>
               <div className="text-text-muted text-xs mt-0.5">GATE Prep Portal</div>

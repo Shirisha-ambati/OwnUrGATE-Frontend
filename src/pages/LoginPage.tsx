@@ -48,13 +48,7 @@ export default function LoginPage() {
         <div className="relative z-10 w-full max-w-sm">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-10">
-            <div className="w-12 h-12 bg-gradient-brand rounded-xl flex items-center justify-center shadow-glow">
-              <svg width="26" height="26" viewBox="0 0 64 64" fill="none">
-                <path d="M12 48 L12 20 L20 12 L44 12 L52 20 L52 48" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M22 48 L22 32 L32 24 L42 32 L42 48" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <rect x="28" y="38" width="8" height="10" rx="1" fill="white" opacity="0.9"/>
-              </svg>
-            </div>
+            <img src="/logo.png" alt="OwnUrGATE Logo" className="w-12 h-12 rounded-xl object-cover shadow-glow border border-white/20" />
             <div>
               <div className="text-2xl font-bold text-text-primary tracking-tight">OwnUrGATE</div>
               <div className="text-text-muted text-sm">Your Personal GATE Prep Portal</div>
