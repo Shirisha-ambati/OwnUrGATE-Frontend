@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-primary: #12161f;
+    --bg-secondary: rgba(28, 33, 48, 0.65);
+    --bg-card: rgba(255, 255, 255, 0.08);
+    --bg-elevated: rgba(255, 255, 255, 0.14);
+    --bg-border: rgba(255, 255, 255, 0.12);
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.75);
+    --text-muted: rgba(255, 255, 255, 0.5);
+  }
+
+  html.light {
+    --bg-primary: #f1f5f9;
+    --bg-secondary: rgba(255, 255, 255, 0.75);
+    --bg-card: rgba(255, 255, 255, 0.65);
+    --bg-elevated: rgba(255, 255, 255, 0.85);
+    --bg-border: rgba(0, 0, 0, 0.08);
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+  }
+
+  * {
+    box-sizing: border-box;
+    border-color: var(--bg-border);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    background-image: url('/bg-wallpaper.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-bg-card border border-bg-border rounded-2xl shadow-2xl backdrop-blur-xl transition-all;
+  }
+
+  .glass-elevated {
+    @apply bg-bg-elevated border border-bg-border rounded-2xl shadow-2xl backdrop-blur-2xl transition-all;
+  }
+
+  .btn-primary {
+    @apply bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2.5 rounded-full transition-all duration-200 text-sm select-none cursor-pointer shadow-lg shadow-blue-500/25;
+  }
+
+  .btn-secondary {
+    @apply bg-white/10 hover:bg-white/20 text-text-primary font-medium px-4 py-2.5 rounded-full border border-white/15 backdrop-blur-lg transition-all duration-200 text-sm select-none cursor-pointer;
+  }
+
+  .btn-ghost {
+    @apply hover:bg-white/10 text-text-secondary hover:text-text-primary font-medium px-3 py-2 rounded-full transition-all duration-200 text-sm select-none cursor-pointer;
+  }
+
+  .input-field {
+    @apply bg-white/10 border border-white/15 rounded-full px-4 py-2.5 text-text-primary placeholder:text-text-muted focus:outline-none focus:border-white/40 focus:ring-2 focus:ring-white/20 backdrop-blur-lg transition-all duration-200 text-sm w-full;
+  }
+
+  .label {
+    @apply text-text-secondary text-xs font-medium uppercase tracking-wide mb-1.5 block;
+  }
+
+  .gate-answered {
+    @apply bg-gate-answered text-white;
+  }
+  .gate-unanswered {
+    @apply bg-gate-unanswered text-white;
+  }
+  .gate-review {
+    @apply bg-gate-review text-white;
+  }
+  .gate-visited {
+    @apply bg-gate-visited text-white;
+  }
+  .gate-not-visited {
+    @apply bg-gate-notVisited text-white;
+  }
+
+  .diff-easy { @apply text-difficulty-easy bg-difficulty-easy/10 border border-difficulty-easy/20; }
+  .diff-medium { @apply text-difficulty-medium bg-difficulty-medium/10 border border-difficulty-medium/20; }
+  .diff-hard { @apply text-difficulty-hard bg-difficulty-hard/10 border border-difficulty-hard/20; }
+  .diff-unrated { @apply text-difficulty-unrated bg-difficulty-unrated/10 border border-difficulty-unrated/20; }
+
+  .katex-render .katex {
+    font-size: 1em;
+  }
+}
