@@ -120,7 +120,12 @@ export default function LoginPage() {
 
       {/* Right Panel — Hero Image */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden">
-        <img src={heroBg} alt="GATE preparation" className="absolute inset-0 w-full h-full object-cover" />
+        <img
+          src="/hero-bg.jpg"
+          onError={(e) => { (e.currentTarget as HTMLImageElement).src = heroBg; }}
+          alt="GATE preparation"
+          className="absolute inset-0 w-full h-full object-cover opacity-85"
+        />
         <div className="absolute inset-0 bg-gradient-to-l from-transparent via-bg-primary/20 to-bg-primary" />
         <div className="absolute bottom-8 left-8 right-8">
           <div className="glass-card p-5 backdrop-blur-md bg-bg-secondary/80">
