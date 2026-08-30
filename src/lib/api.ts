@@ -3,7 +3,16 @@
  * Includes JWT bearer token support for reliable authentication and cross-device sync.
  */
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const getBaseUrl = (): string => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (!envUrl || envUrl === "/") {
+    if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+      return "http://localhost:5000";
+    }
+    return "";
+  }
+  return envUrl.replace(/\/+$/, "");
+};
 
 const TOKEN_KEY = "ownurgate_token";
 
@@ -34,6 +43,16 @@ function normalizeId<T>(item: T): T {
 }
 
 async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const baseUrl = getBaseUrl();
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+
+  if (!baseUrl && typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+    throw new Error(
+      "VITE_API_URL environment variable is missing on Vercel. Please go to Vercel Project Settings -> Environment Variables and set VITE_API_URL to your backend URL (e.g. https://your-backend.onrender.com)."
+    );
+  }
+
+  const url = `${baseUrl}${cleanPath}`;
   const token = getAuthToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -41,7 +60,7 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
     ...(options.headers as Record<string, string>),
   };
 
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(url, {
     credentials: "include",
     headers,
     ...options,
@@ -110,9 +129,11 @@ export const attemptsApi = {
 
 export const isBackendAvailable = async (): Promise<boolean> => {
   try {
+    const baseUrl = getBaseUrl();
+    if (!baseUrl && typeof window !== "undefined" && window.location.hostname !== "localhost") return false;
     const token = getAuthToken();
     const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
-    const res = await fetch(`${API_URL}/api/auth/me`, { credentials: "include", headers });
+    const res = await fetch(`${baseUrl}/api/auth/me`, { credentials: "include", headers });
     return res.ok;
   } catch {
     return false;
