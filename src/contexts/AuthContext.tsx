@@ -33,7 +33,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     (async () => {
-      // 1. Try restoring session from backend
+      // 1. Try restoring stored session from device localStorage
+      const stored = getUser();
+      if (stored) {
+        setUserState(stored);
+        setLoading(false);
+        return;
+      }
+
+      // 2. Try restoring session from backend cookie
       try {
         const { user: apiUser } = await authApi.me();
         if (apiUser?.id) {
@@ -42,13 +50,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setLoading(false);
           return;
         }
-      } catch { /* backend offline */ }
+      } catch { /* offline */ }
 
-      // 2. Fallback: restore from localStorage
-      const stored = getUser();
-      if (stored) {
-        setUserState(stored);
-      }
+      // 3. Unauthenticated -> User remains null and ProtectedRoute redirects to /login
       setLoading(false);
     })();
   }, []);
