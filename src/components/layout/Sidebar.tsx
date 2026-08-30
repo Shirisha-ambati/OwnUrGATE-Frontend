@@ -45,15 +45,13 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         {/* Logo */}
         <div className="flex items-center justify-between px-5 py-5 border-b border-bg-border">
           <div className="flex items-center gap-2.5">
-            <img
-              src="/logo.png"
-              alt="OwnUrGATE Logo"
-              className="w-8 h-8 rounded-lg object-cover shadow-glow-sm border border-white/20"
-              onError={(e) => {
-                // Fallback if logo image fails to load
-                (e.target as HTMLElement).style.display = 'none';
-              }}
-            />
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-blue to-purple-600 flex items-center justify-center shadow-glow-sm border border-white/20 shrink-0">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 17L12 22L22 17" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M2 12L12 17L22 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
             <div>
               <div className="text-text-primary font-bold text-sm leading-none">OwnUrGATE</div>
               <div className="text-text-muted text-xs mt-0.5">GATE Prep Portal</div>
